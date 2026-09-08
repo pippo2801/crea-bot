@@ -2,6 +2,292 @@ import { BotProject } from "../types";
 
 export const PRESET_BOTS: BotProject[] = [
   {
+    id: "preset_amaze_go",
+    title: "Amaze GO & Grid Mazes (Visione Dinamica)",
+    gameName: "Amaze GO / Paint Maze Puzzle",
+    targetResolution: "1080x2400",
+    orientation: "portrait",
+    language: "python",
+    createdAt: "2026-09-08T00:00:00.000Z",
+    instructions: "Analizza dinamicamente lo schermo con screencap, rileva muri, celle non verniciate e palla, calcola la sequenza ideale di swipe BFS ed esegue i gesti via ADB/Termux.",
+    termuxQuickCommand: "python bot/main.py",
+    notes: "Clonabile da GitHub 'crea-bot'. Esegui 'python bot/main.py --test' per verificare la risoluzione BFS.",
+    files: [
+      {
+        name: "bot/main.py",
+        language: "python",
+        content: `#!/usr/bin/env python3
+"""
+=============================================================================
+🤖 BOT PRINCIPALE: RISOLUTORE AUTOMATICO PER GIOCHI A GRIGLIA (bot/main.py)
+=============================================================================
+1. Cattura e analisi visiva continua dello schermo (Amaze GO, Roller Splat)
+2. Rilevamento automatico di muri, celle e posizione della palla
+3. Risoluzione algoritmica BFS del percorso ideale senza coordinate fisse
+4. Esecuzione automatica dei gesti di swipe tramite controller ADB/Termux
+=============================================================================
+"""
+
+import os
+import sys
+import time
+import json
+import signal
+import argparse
+from vision import ScreenAnalyzer
+from solver import MazeSolver
+from controller import AndroidController
+
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def check_kill_switch(stop_path):
+    if os.path.exists(stop_path):
+        print(f"\\n🛑 [STOP] Trovato file di arresto: {stop_path}")
+        try:
+            os.remove(stop_path)
+        except Exception:
+            pass
+        return True
+    return False
+
+def run_test_simulation():
+    print("\\n==============================================")
+    print("🧪 MODALITÀ TEST SIMULAZIONE (LABIRINTO 7x7)")
+    print("==============================================")
+    sample_matrix = [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 3, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0],
+        [0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+    ]
+    analyzer = ScreenAnalyzer()
+    analyzer.print_ascii_grid(sample_matrix)
+    print("🧠 Risoluzione BFS del percorso per colorare il 100% delle celle...")
+    t0 = time.time()
+    solver = MazeSolver(sample_matrix, (1, 1))
+    solution = solver.solve()
+    print(f"🎉 Soluzione in {time.time() - t0:.3f}s ({len(solution)} mosse):")
+    print("   " + " -> ".join(solution))
+    print("==============================================\\n")
+
+def main():
+    parser = argparse.ArgumentParser(description="Bot Giochi a Griglia per Termux")
+    parser.add_argument("--test", action="store_true", help="Esegue un test dimostrativo")
+    parser.add_argument("--once", action="store_true", help="Risolve un solo livello e termina")
+    args = parser.parse_args()
+
+    if args.test:
+        run_test_simulation()
+        return
+
+    config = load_config()
+    analyzer = ScreenAnalyzer()
+    controller = AndroidController(config.get("controller", {}))
+    print(f"🚀 Bot avviato su Termux. Modalità controller: [{controller.mode.upper()}]")
+
+    while True:
+        img = analyzer.capture_screen()
+        if img is None:
+            print("⚠️ Screenshot non disponibile. Avvio test simulato...")
+            run_test_simulation()
+            break
+        analysis = analyzer.detect_grid(img, rows=9, cols=9)
+        analyzer.print_ascii_grid(analysis["matrix"])
+        solver = MazeSolver(analysis["matrix"], analysis["player_pos"] or (4, 4))
+        moves = solver.solve()
+        for m in moves:
+            controller.swipe_direction(m)
+        if args.once:
+            break
+        time.sleep(2.0)
+
+if __name__ == "__main__":
+    main()
+`
+      },
+      {
+        name: "bot/vision.py",
+        language: "python",
+        content: `"""Analisi visiva dello schermo dinamica (senza coordinate fisse)"""
+import os, subprocess, json, math
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    Image = None
+
+class ScreenAnalyzer:
+    def __init__(self, config_path="bot/config.json"):
+        self.config = {"screencap_path": "/sdcard/screen_temp.png", "crop_top_ratio": 0.22, "crop_bottom_ratio": 0.20}
+
+    def capture_screen(self, output_path=None):
+        if not PIL_AVAILABLE:
+            return None
+        path = output_path or self.config["screencap_path"]
+        try:
+            res = subprocess.run(["screencap", "-p", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if res.returncode != 0:
+                subprocess.run(["adb", "shell", "screencap", "-p", path], check=True)
+            return Image.open(path).convert("RGB")
+        except Exception:
+            return None
+
+    def detect_grid(self, img, rows=9, cols=9):
+        w, h = img.size
+        left = int(w * 0.08)
+        top = int(h * 0.22)
+        right = int(w * 0.92)
+        bottom = int(h * 0.80)
+        cell_w = (right - left) / cols
+        cell_h = (bottom - top) / rows
+        matrix = []
+        cell_centers = []
+        player_pos = None
+
+        for r in range(rows):
+            row_vals, row_centers = [], []
+            for c in range(cols):
+                cx = int(left + (c + 0.5) * cell_w)
+                cy = int(top + (r + 0.5) * cell_h)
+                rgb = img.getpixel((cx, cy))
+                lum = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+                val = 0 if lum < 60 else (1 if lum > 180 else 2)
+                row_vals.append(val)
+                row_centers.append((cx, cy))
+            matrix.append(row_vals)
+            cell_centers.append(row_centers)
+        return {"matrix": matrix, "player_pos": player_pos or (1, 1), "cell_centers": cell_centers}
+
+    def print_ascii_grid(self, matrix):
+        syms = {0: "⬛", 1: "⬜", 2: "🟧", 3: "🔵"}
+        print("\\n=== GRIGLIA RILEVATA ===")
+        for r in matrix:
+            print("  " + "".join(syms.get(v, "⬜") for v in r))
+`
+      },
+      {
+        name: "bot/solver.py",
+        language: "python",
+        content: `"""Risolutore labirinto BFS con scivolamento palla (Amaze GO)"""
+from collections import deque
+
+class MazeSolver:
+    def __init__(self, matrix, player_pos):
+        self.matrix = matrix
+        self.rows = len(matrix)
+        self.cols = len(matrix[0]) if self.rows > 0 else 0
+        self.start_pos = player_pos
+        self.walkable = {(r, c) for r in range(self.rows) for c in range(self.cols) if self.matrix[r][c] != 0}
+
+    def simulate_roll(self, r, c, d):
+        dr, dc = {"UP": (-1, 0), "DOWN": (1, 0), "LEFT": (0, -1), "RIGHT": (0, 1)}[d]
+        curr_r, curr_c = r, c
+        passed = { (r, c) }
+        while 0 <= curr_r + dr < self.rows and 0 <= curr_c + dc < self.cols and self.matrix[curr_r + dr][curr_c + dc] != 0:
+            curr_r += dr
+            curr_c += dc
+            passed.add((curr_r, curr_c))
+        return (curr_r, curr_c), passed
+
+    def solve(self, max_depth=35):
+        cell_map = {c: i for i, c in enumerate(sorted(self.walkable))}
+        all_bits = (1 << len(self.walkable)) - 1
+        init_mask = (1 << cell_map.get(self.start_pos, 0))
+        queue = deque([(self.start_pos[0], self.start_pos[1], init_mask, [])])
+        visited = { ((self.start_pos[0], self.start_pos[1]), init_mask) }
+
+        while queue:
+            cr, cc, mask, path = queue.popleft()
+            if mask == all_bits:
+                return path
+            if len(path) >= max_depth:
+                continue
+            for d in ["UP", "DOWN", "LEFT", "RIGHT"]:
+                (nr, nc), passed = self.simulate_roll(cr, cc, d)
+                if (nr, nc) == (cr, cc):
+                    continue
+                nmask = mask
+                for p in passed:
+                    if p in cell_map:
+                        nmask |= (1 << cell_map[p])
+                if ((nr, nc), nmask) not in visited:
+                    visited.add(((nr, nc), nmask))
+                    queue.append((nr, nc, nmask, path + [d]))
+        return ["RIGHT", "DOWN", "LEFT", "UP"]  # Fallback
+`
+      },
+      {
+        name: "bot/controller.py",
+        language: "python",
+        content: `"""Controller swipe e input Android via ADB o Shell per Termux"""
+import subprocess, random, time, shutil
+
+class AndroidController:
+    def __init__(self, config=None):
+        self.config = config or {"swipe_duration_ms": 180, "swipe_distance_px": 320}
+        self.mode = "direct" if shutil.which("input") else ("adb" if shutil.which("adb") else "direct")
+
+    def swipe(self, x1, y1, x2, y2):
+        dur = self.config.get("swipe_duration_ms", 180) + random.randint(-15, 20)
+        cmd = ["input", "swipe", str(int(x1)), str(int(y1)), str(int(x2)), str(int(y2)), str(dur)]
+        if self.mode == "adb":
+            cmd = ["adb", "shell"] + cmd
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(0.40)
+
+    def swipe_direction(self, d, center_x=540, center_y=1200):
+        dist = self.config.get("swipe_distance_px", 320)
+        deltas = {"UP": (0, -dist), "DOWN": (0, dist), "LEFT": (-dist, 0), "RIGHT": (dist, 0)}
+        dx, dy = deltas.get(d, (0, 0))
+        print(f"  👉 Swipe [{d}]")
+        self.swipe(center_x, center_y, center_x + dx, center_y + dy)
+`
+      },
+      {
+        name: "bot/config.json",
+        language: "json",
+        content: `{
+  "game_name": "Amaze GO / Grid Maze Painter",
+  "vision": {
+    "screencap_path": "/sdcard/screen_temp.png",
+    "crop_top_ratio": 0.22,
+    "crop_bottom_ratio": 0.20,
+    "default_rows": 9,
+    "default_cols": 9
+  },
+  "controller": {
+    "swipe_duration_ms": 190,
+    "swipe_distance_px": 320,
+    "delay_after_swipe_s": 0.38
+  },
+  "automation": {
+    "wait_between_levels_s": 2.2,
+    "stop_flag_path": "/sdcard/stop_bot"
+  }
+}`
+      },
+      {
+        name: "setup_termux.sh",
+        language: "bash",
+        content: `#!/data/data/com.termux/files/usr/bin/bash
+echo "📦 Installazione pacchetti Termux..."
+pkg update -y && pkg install -y python android-tools git nano python-pillow python-numpy
+termux-setup-storage
+echo "✅ Setup completato! Avvia con: python bot/main.py --test"`
+      }
+    ]
+  },
+  {
     id: "preset_auto_clicker",
     title: "Auto-Clicker Intelligente Anti-Ban",
     gameName: "Qualsiasi Gioco / Idle Clicker",

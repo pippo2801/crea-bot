@@ -8,7 +8,7 @@ interface GitHubSyncModalProps {
 
 export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClose }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [githubUsername, setGithubUsername] = useState("tuo-username");
+  const [githubUsername, setGithubUsername] = useState("pippo2801");
 
   if (!isOpen) return null;
 
@@ -23,7 +23,7 @@ export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClos
 
   const gitPushCommand = `git remote add origin ${repoUrl}\ngit branch -M main\ngit push -u origin main`;
 
-  const termuxCloneCommand = `pkg install git -y\ngit clone ${repoUrl}\ncd ${repoName}\npython bot.py`;
+  const termuxCloneCommand = `pkg install git -y\ngit clone ${repoUrl}\ncd ${repoName}\nchmod +x setup_termux.sh\n./setup_termux.sh\npython bot/main.py --test`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">

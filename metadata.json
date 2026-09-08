@@ -1,6 +1,6 @@
 {
   "name": "Crea Bot Android",
-  "description": "Generatore IA per bot di gioco Android compatibili ed eseguibili con Termux (Python, Bash, ADB, macro anti-ban).",
+  "description": "Generatore e gestore modulare di bot per giochi Android basati su griglia (come Amaze GO) con analisi visiva dello schermo e supporto Termux.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

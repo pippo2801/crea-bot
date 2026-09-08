@@ -1,0 +1,8 @@
+# Dipendenze Python per l'esecuzione del Bot su Android con Termux
+# Per installarle su Termux:
+# pkg install python python-pillow python-numpy -y
+# oppure: pip install -r requirements.txt
+
+Pillow>=10.0.0
+numpy>=1.24.0
+requests>=2.31.0

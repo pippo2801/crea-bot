@@ -1,0 +1,25 @@
+{
+  "game_name": "Amaze GO / Grid Maze Painter",
+  "vision": {
+    "screencap_path": "/sdcard/screen_temp.png",
+    "debug_save": true,
+    "crop_top_ratio": 0.22,
+    "crop_bottom_ratio": 0.20,
+    "crop_left_ratio": 0.08,
+    "crop_right_ratio": 0.08,
+    "default_rows": 9,
+    "default_cols": 9
+  },
+  "controller": {
+    "swipe_duration_ms": 190,
+    "swipe_distance_px": 320,
+    "jitter_range": 6,
+    "delay_after_swipe_s": 0.38
+  },
+  "automation": {
+    "level_retry_limit": 3,
+    "wait_between_levels_s": 2.2,
+    "max_moves_per_level": 40,
+    "stop_flag_path": "/sdcard/stop_bot"
+  }
+}
