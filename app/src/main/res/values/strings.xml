@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Universal Game Bot</string>
+    <string name="bot_service_notification_channel">Universal Game Bot Service</string>
+</resources>
