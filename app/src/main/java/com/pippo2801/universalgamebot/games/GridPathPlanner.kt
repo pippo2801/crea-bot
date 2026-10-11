@@ -6,7 +6,7 @@ package com.pippo2801.universalgamebot.games
  * The result is a plan only; it never dispatches gestures or marks a game certified.
  */
 object GridPathPlanner {
-    enum class Failure { INVALID_GRID, UNREACHABLE, INVALID_BOARD_BOUNDS }
+    enum class Failure { INVALID_GRID, INVALID_OBSERVATION, UNREACHABLE, INVALID_BOARD_BOUNDS }
 
     data class Plan(
         val path: List<GridPoint>,
@@ -30,8 +30,8 @@ object GridPathPlanner {
                 GridObservationValidator.Failure.INVALID_DIMENSIONS,
                 GridObservationValidator.Failure.UNKNOWN_GAME,
                 GridObservationValidator.Failure.INVALID_CONFIDENCE,
-                GridObservationValidator.Failure.LOW_CONFIDENCE -> Failure.INVALID_GRID
-                null -> Failure.INVALID_GRID
+                GridObservationValidator.Failure.LOW_CONFIDENCE -> Failure.INVALID_OBSERVATION
+                null -> Failure.INVALID_OBSERVATION
             }
             return Result(failure = failure)
         }
