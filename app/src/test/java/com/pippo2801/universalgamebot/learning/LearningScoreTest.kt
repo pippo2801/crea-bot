@@ -7,15 +7,15 @@ import org.junit.Test
 class LearningScoreTest {
 
     @Test
-    fun defaultBreakdownIsFullyScored() {
+    fun defaultBreakdownStartsWithNoUnverifiedProgress() {
         val score = LearningScoreBreakdown()
 
-        assertEquals(100, score.totalScore)
-        assertEquals(AutonomyStatus.AUTONOMY_VERIFIED, score.autonomyStatus)
+        assertEquals(0, score.totalScore)
+        assertEquals(AutonomyStatus.OBSERVATION, score.autonomyStatus)
     }
 
     @Test
-    fun scoreTiersUseDocumentedBoundaries() {
+    fun scoreTiersNeverCertifyAutonomyByScoreAlone() {
         assertEquals(AutonomyStatus.OBSERVATION, score(39).autonomyStatus)
         assertEquals(AutonomyStatus.LEARNING, score(40).autonomyStatus)
         assertEquals(AutonomyStatus.LEARNING, score(69).autonomyStatus)
@@ -23,22 +23,13 @@ class LearningScoreTest {
         assertEquals(AutonomyStatus.AUTONOMOUS_TESTING, score(89).autonomyStatus)
         assertEquals(AutonomyStatus.NEARLY_READY, score(90).autonomyStatus)
         assertEquals(AutonomyStatus.NEARLY_READY, score(99).autonomyStatus)
-        assertEquals(AutonomyStatus.AUTONOMY_VERIFIED, score(100).autonomyStatus)
+        assertEquals(AutonomyStatus.NEARLY_READY, score(100).autonomyStatus)
     }
 
     @Test
-    fun totalScoreIsClampedToRange() {
+    fun eachDimensionIsClampedToItsTenPointRange() {
         assertEquals(0, LearningScoreBreakdown(
-            screenRecognition = -20,
-            objectRecognition = 0,
-            controls = 0,
-            rules = 0,
-            objective = 0,
-            stateRecognition = 0,
-            strategy = 0,
-            reactions = 0,
-            errorHandling = 0,
-            autonomousTests = 0
+            screenRecognition = -20
         ).totalScore)
 
         assertEquals(100, LearningScoreBreakdown(
@@ -55,20 +46,6 @@ class LearningScoreTest {
         ).totalScore)
     }
 
-    private fun score(target: Int): LearningScoreBreakdown {
-        // Ten dimensions share the target evenly; use one dimension for boundaries
-        // and zero for the rest to exercise the exact aggregate score.
-        return LearningScoreBreakdown(
-            screenRecognition = target,
-            objectRecognition = 0,
-            controls = 0,
-            rules = 0,
-            objective = 0,
-            stateRecognition = 0,
-            strategy = 0,
-            reactions = 0,
-            errorHandling = 0,
-            autonomousTests = 0
-        )
-    }
+    private fun score(target: Int): LearningScoreBreakdown =
+        LearningScoreBreakdown(screenRecognition = target)
 }
