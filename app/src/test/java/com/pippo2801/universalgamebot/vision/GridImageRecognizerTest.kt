@@ -2,6 +2,7 @@ package com.pippo2801.universalgamebot.vision
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import com.pippo2801.universalgamebot.games.GridPathPlanner
 import org.junit.Test
 
 class GridImageRecognizerTest {
@@ -27,6 +28,23 @@ class GridImageRecognizerTest {
         assertEquals(1, grid.rows.sumOf { it.count { cell -> cell == 'G' } })
         assertTrue(grid.confidence >= 0.95f)
         assertEquals("amaze_go", grid.observation.gameId)
+    }
+
+    @Test
+    fun recognizedGridPassesValidationAndProducesPlanOnly() {
+        val recognition = recognizer.recognize(syntheticGrid())
+        assertTrue("Expected recognition success but got $recognition", recognition is GridRecognitionResult.Success)
+
+        val grid = (recognition as GridRecognitionResult.Success).grid
+        val planning = GridPathPlanner.planValidated(grid.observation)
+
+        assertTrue("Expected path plan but got $planning", planning.isSuccess)
+        val plan = requireNotNull(planning.plan)
+        assertTrue(plan.path.size >= 2)
+        assertEquals(GridPathPlanner.Failure.INVALID_OBSERVATION, GridPathPlanner.planValidated(
+            grid.observation.copy(confidence = 0.94f)
+        ).failure)
+        // Planning returns data only; this test has no ActionEngine or gesture dispatcher.
     }
 
     @Test
