@@ -22,6 +22,9 @@ class ScreenCaptureManager(private val context: Context) {
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
 
+    val isReady: Boolean
+        get() = mediaProjection != null && virtualDisplay != null && imageReader != null
+
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() {
             virtualDisplay?.release()
@@ -54,7 +57,12 @@ class ScreenCaptureManager(private val context: Context) {
             ?: throw IllegalStateException("MediaProjection unavailable")
         mediaProjection = projection
         projection.registerCallback(projectionCallback, Handler(Looper.getMainLooper()))
-        setupVirtualDisplay()
+        try {
+            setupVirtualDisplay()
+        } catch (e: Exception) {
+            release()
+            throw e
+        }
         Log.i("ScreenCaptureManager", "MediaProjection initialized: ${width}x${height}@${density}")
     }
 
