@@ -1,11 +1,15 @@
 package com.pippo2801.universalgamebot.ui
 
 import android.app.Application
+import android.content.ComponentName
 import android.content.Intent
+import android.provider.Settings
+import android.text.TextUtils
 import androidx.lifecycle.AndroidViewModel
 import com.pippo2801.universalgamebot.core.*
 import com.pippo2801.universalgamebot.games.GameRegistry
 import com.pippo2801.universalgamebot.diagnostics.DiagnosticsManager
+import com.pippo2801.universalgamebot.service.BotAccessibilityService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -28,6 +32,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectGame(gameId: String) {
         _selectedGameId.value = gameId
+    }
+
+    fun runDiagnostics() = diagnosticsManager.runDiagnostics(
+        hasAccessibility = isAccessibilityServiceEnabled(),
+        hasScreenCapture = screenCaptureManager.isReady,
+        isObservationRunning = isBotRunning.value
+    )
+
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val expected = ComponentName(getApplication(), BotAccessibilityService::class.java)
+            .flattenToString()
+        val enabled = Settings.Secure.getString(
+            getApplication<Application>().contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+        return TextUtils.SimpleStringSplitter(':').run {
+            setString(enabled)
+            any { it.equals(expected, ignoreCase = true) }
+        }
     }
 
     fun startBot(resultCode: Int, data: Intent, width: Int, height: Int, densityDpi: Int) {
