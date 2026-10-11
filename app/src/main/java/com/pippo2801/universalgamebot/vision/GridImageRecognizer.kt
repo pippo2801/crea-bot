@@ -217,7 +217,9 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
             )
         }
 
-        val confidence = (accumulatedCellConfidence / cellCount.toDouble()).toFloat()
+        val cellConfidence = (accumulatedCellConfidence / cellCount.toDouble()).toFloat()
+        val lineConfidence = minOf(spacingConfidence(columnWidths), spacingConfidence(rowHeights))
+        val confidence = (cellConfidence * lineConfidence).coerceIn(0f, 1f)
         val observation = GridObservation(
             gameId = "amaze_go",
             rows = rows,
@@ -291,7 +293,7 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
                     val candidate = mutableListOf<Int>()
                     var residual = 0.0
                     var cellIndex = 0
-                    while (candidate.size <= maxCells + 1) {
+                    while (candidate.size < maxCells + 1) {
                         val expected = (lines[startIndex] + cellIndex * step).toInt()
                         if (expected !in 1 until axisSize - 1) break
                         val nearest = lines.minByOrNull { kotlin.math.abs(it - expected) }
@@ -360,6 +362,14 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
         if (bestRatio < config.minCellColorMatchRatio || bestRatio - secondRatio < 0.25f) return null
 
         return ranges[bestIndex].first to (bestRatio - secondRatio).toDouble()
+    }
+
+    private fun spacingConfidence(spacings: List<Int>): Float {
+        if (spacings.isEmpty()) return 0f
+        val median = spacings.sorted()[spacings.size / 2].coerceAtLeast(1)
+        val meanRelativeDeviation = spacings.map { kotlin.math.abs(it - median).toFloat() / median }
+            .average().toFloat()
+        return (1f - meanRelativeDeviation).coerceIn(0f, 1f)
     }
 
     private fun isRegular(spacings: List<Int>): Boolean {
