@@ -20,6 +20,29 @@ object GridPathPlanner {
         val isSuccess: Boolean get() = plan != null && failure == null
     }
 
+    fun planValidated(observation: GridObservation): Result {
+        val validation = GridObservationValidator.validate(observation)
+        if (!validation.isValid) {
+            val failure = when (validation.failure) {
+                GridObservationValidator.Failure.INVALID_BOUNDS,
+                GridObservationValidator.Failure.INVALID_SCREEN_SIZE -> Failure.INVALID_BOARD_BOUNDS
+                GridObservationValidator.Failure.INVALID_GRID,
+                GridObservationValidator.Failure.INVALID_DIMENSIONS,
+                GridObservationValidator.Failure.UNKNOWN_GAME,
+                GridObservationValidator.Failure.INVALID_CONFIDENCE,
+                GridObservationValidator.Failure.LOW_CONFIDENCE -> Failure.INVALID_GRID
+                null -> Failure.INVALID_GRID
+            }
+            return Result(failure = failure)
+        }
+        return plan(
+            grid = observation.rows,
+            bounds = observation.boardBounds,
+            screenWidth = observation.screenWidth,
+            screenHeight = observation.screenHeight
+        )
+    }
+
     fun plan(
         grid: List<String>,
         bounds: GridBounds,
