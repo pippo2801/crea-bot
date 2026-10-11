@@ -20,6 +20,10 @@ fun GamesScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Registered Games (${profiles.size})", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedButton(onClick = onOpenSudoku, modifier = Modifier.fillMaxWidth()) {
+            Text("Apri risolutore Sudoku offline")
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
