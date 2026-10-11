@@ -10,22 +10,71 @@ data class DiagnosticItem(
     val details: String
 )
 
+/**
+ * Reports only capabilities that are actually implemented or explicitly observed.
+ * A registered game catalogue is not equivalent to a working detector or solver.
+ */
 class DiagnosticsManager {
 
-    fun runDiagnostics(hasAccessibility: Boolean, hasScreenCapture: Boolean): List<DiagnosticItem> {
-        return listOf(
-            DiagnosticItem("Android System", DiagnosticStatus.OK, "Android 14+ / SDK 34 compatible"),
-            DiagnosticItem("Screen Capture", if (hasScreenCapture) DiagnosticStatus.OK else DiagnosticStatus.WARNING, if (hasScreenCapture) "MediaProjection ready" else "Permission required"),
-            DiagnosticItem("Accessibility Service", if (hasAccessibility) DiagnosticStatus.OK else DiagnosticStatus.ERROR, if (hasAccessibility) "Service active & bound" else "Service disabled in Android Settings"),
-            DiagnosticItem("Input Engine", DiagnosticStatus.OK, "Dispatch gesture ready"),
-            DiagnosticItem("Vision Engine", DiagnosticStatus.OK, "Local bitmap processor active"),
-            DiagnosticItem("Game Detection", DiagnosticStatus.OK, "Registry loaded (25 games)"),
-            DiagnosticItem("Learning Engine", DiagnosticStatus.OK, "State observation ready"),
-            DiagnosticItem("Memory Manager", DiagnosticStatus.OK, "Persistent local storage ready"),
-            DiagnosticItem("Planner", DiagnosticStatus.OK, "Strategy engine ready"),
-            DiagnosticItem("Verification", DiagnosticStatus.OK, "Autonomous test suite ready"),
-            DiagnosticItem("AI Router", DiagnosticStatus.OK, "Zero-Cost Guard active (Offline-first)"),
-            DiagnosticItem("Safety Manager", DiagnosticStatus.OK, "Green / Yellow / Red guard active")
+    fun runDiagnostics(
+        hasAccessibility: Boolean,
+        hasScreenCapture: Boolean,
+        isObservationRunning: Boolean = false
+    ): List<DiagnosticItem> = listOf(
+        DiagnosticItem(
+            "Android System",
+            DiagnosticStatus.OK,
+            "App runtime available; device-specific behavior still needs phone testing"
+        ),
+        DiagnosticItem(
+            "Screen Capture",
+            if (hasScreenCapture) DiagnosticStatus.OK else DiagnosticStatus.WARNING,
+            if (hasScreenCapture) "MediaProjection initialized" else "Grant screen-capture permission by starting observation"
+        ),
+        DiagnosticItem(
+            "Accessibility Service",
+            if (hasAccessibility) DiagnosticStatus.OK else DiagnosticStatus.WARNING,
+            if (hasAccessibility) "Service enabled in Android settings" else "Enable only if you want to use future gesture controls"
+        ),
+        DiagnosticItem(
+            "Observation Loop",
+            if (isObservationRunning) DiagnosticStatus.OK else DiagnosticStatus.WARNING,
+            if (isObservationRunning) "Observation loop running" else "Not running"
+        ),
+        DiagnosticItem(
+            "Vision Engine",
+            DiagnosticStatus.WARNING,
+            "Reads basic bitmap metadata only; no semantic game/object recognition"
+        ),
+        DiagnosticItem(
+            "Game Detection",
+            DiagnosticStatus.WARNING,
+            "No validated visual fingerprints; games currently remain Unknown"
+        ),
+        DiagnosticItem(
+            "Game Strategies",
+            DiagnosticStatus.WARNING,
+            "Game-specific solvers are incomplete; no autonomous gameplay is certified"
+        ),
+        DiagnosticItem(
+            "Learning",
+            DiagnosticStatus.WARNING,
+            "Learning progress is not automatically inferred from real gameplay yet"
+        ),
+        DiagnosticItem(
+            "Verification",
+            DiagnosticStatus.WARNING,
+            "Certificates are validated by code, but no game has completed a real-device test suite"
+        ),
+        DiagnosticItem(
+            "AI Router",
+            DiagnosticStatus.WARNING,
+            "No cloud provider routing is configured; the current implementation is offline scaffolding"
+        ),
+        DiagnosticItem(
+            "Safety Manager",
+            DiagnosticStatus.OK,
+            "Fail-closed checks block unknown screens, errors and low-confidence observations"
         )
-    }
+    )
 }
