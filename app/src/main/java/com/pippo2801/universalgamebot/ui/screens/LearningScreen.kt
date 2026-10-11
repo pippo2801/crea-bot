@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pippo2801.universalgamebot.ui.MainViewModel
@@ -15,6 +15,11 @@ fun LearningScreen(viewModel: MainViewModel) {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Learning Center", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "I punteggi rappresentano solo lo stato registrato. L'apprendimento automatico reale non è ancora collegato al gameplay; per questo i comandi Learn/Test restano disabilitati.",
+            style = MaterialTheme.typography.bodySmall
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -25,18 +30,17 @@ fun LearningScreen(viewModel: MainViewModel) {
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { profile.learningScore / 100f },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Learning Score: ${profile.learningScore}% [${profile.autonomyStatus}]", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "Learning Score: ${profile.learningScore}% [${profile.autonomyStatus}]",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { /* Start Learning */ }) {
-                                Text("Learn")
-                            }
-                            OutlinedButton(onClick = { /* Autonomous Test */ }) {
-                                Text("Test")
-                            }
+                            Button(onClick = {}, enabled = false) { Text("Learn non disponibile") }
+                            OutlinedButton(onClick = {}, enabled = false) { Text("Test non disponibile") }
                         }
                     }
                 }
