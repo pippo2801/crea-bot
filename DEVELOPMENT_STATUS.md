@@ -18,6 +18,7 @@
 - The detector deliberately returns `Unknown Game` because validated visual fingerprints are absent.
 - The observation loop is not connected to a functional, certified gameplay adapter.
 - Added a deterministic breadth-first-search grid path solver with unit tests. It accepts a recognized `# . S G` grid, validates malformed input, returns a shortest path including endpoints, and handles unreachable goals.
+- Added an offline Sudoku backtracking solver with minimum-remaining-values cell selection, input validation, and solution counting capped at two to distinguish unique from ambiguous puzzles; unit tests cover normal, invalid, ambiguous, and non-mutating cases.
 - Amaze GO remains observation-only: the solver is not connected to a visual grid recognizer, path execution, or victory/failure detection, so it does not yet make the game playable autonomously.
 - Sudoku, EA SPORTS FC Mobile and the other catalogue entries are not autonomous players. Listing a game does not mean it is supported.
 - Learning screen controls are not connected to a real gameplay learning pipeline; scores must not be interpreted as measured capability.
