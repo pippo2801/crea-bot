@@ -1,7 +1,5 @@
 package com.pippo2801.universalgamebot.service
 
-accessibility service package
-
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
@@ -22,7 +20,7 @@ class BotAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Observe accessibility events if needed for game state observation
+        // Observe accessibility events if needed for game state observation.
     }
 
     override fun onInterrupt() {
@@ -38,12 +36,10 @@ class BotAccessibilityService : AccessibilityService() {
     }
 
     fun performTap(x: Float, y: Float, callback: GestureResultCallback?) {
-        val path = Path().apply {
-            moveTo(x, y)
-        }
+        val path = Path().apply { moveTo(x, y) }
         val stroke = GestureDescription.StrokeDescription(path, 0, 50)
-        val gestureBuilder = GestureDescription.Builder().addStroke(stroke)
-        dispatchGesture(gestureBuilder.build(), object : GestureResultCallback() {
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
+        dispatchGesture(gesture, object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
                 callback?.onCompleted(gestureDescription)
@@ -56,14 +52,22 @@ class BotAccessibilityService : AccessibilityService() {
         }, null)
     }
 
-    fun performSwipe(startX: Float, startY: Float, endX: Float, endY: Float, duration: Long, callback: GestureResultCallback?) {
+    fun performSwipe(
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+        duration: Long,
+        callback: GestureResultCallback?
+    ) {
+        val safeDuration = duration.coerceIn(1L, 5000L)
         val path = Path().apply {
             moveTo(startX, startY)
             lineTo(endX, endY)
         }
-        val stroke = GestureDescription.StrokeDescription(path, 0, duration)
-        val gestureBuilder = GestureDescription.Builder().addStroke(stroke)
-        dispatchGesture(gestureBuilder.build(), object : GestureResultCallback() {
+        val stroke = GestureDescription.StrokeDescription(path, 0, safeDuration)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
+        dispatchGesture(gesture, object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
                 callback?.onCompleted(gestureDescription)
