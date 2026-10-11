@@ -1,5 +1,7 @@
 package com.pippo2801.universalgamebot.games
 
+import com.pippo2801.universalgamebot.verification.AutonomyCertificate
+
 class GameRegistry {
 
     private val profiles = mutableMapOf<String, GameProfile>()
@@ -54,22 +56,39 @@ class GameRegistry {
 
     fun getProfile(gameId: String): GameProfile? = profiles[gameId]
 
+    /** Ordinary profile updates cannot assert that a game is autonomous. */
     fun updateProfile(profile: GameProfile) {
-        // Do not allow callers to infer verified autonomy from a score alone.
-        profiles[profile.gameId] = if (profile.isVerified &&
-            profile.autonomyStatus == AutonomyStatus.AUTONOMY_VERIFIED &&
-            profile.lastVerifiedAt > 0L &&
-            profile.learningScore >= 0 &&
-            profile.learningScore <= 100
-        ) {
-            profile
-        } else {
-            profile.copy(
-                isVerified = false,
-                autonomyStatus = if (profile.autonomyStatus == AutonomyStatus.NOT_AUTONOMOUS)
-                    AutonomyStatus.NOT_AUTONOMOUS else AutonomyStatus.OBSERVATION,
-                lastVerifiedAt = 0L
-            )
+        profiles[profile.gameId] = profile.copy(
+            isVerified = false,
+            confidence = profile.confidence.coerceIn(0f, 1f),
+            autonomyStatus = if (profile.autonomyStatus == AutonomyStatus.NOT_AUTONOMOUS)
+                AutonomyStatus.NOT_AUTONOMOUS else AutonomyStatus.OBSERVATION,
+            lastVerifiedAt = 0L
+        )
+    }
+
+    /** Only a complete, successful certificate matching this exact profile can verify it. */
+    fun applyCertificate(profile: GameProfile, certificate: AutonomyCertificate): Boolean {
+        val valid = certificate.gameId == profile.gameId &&
+            certificate.profileVersion == profile.version &&
+            certificate.issuedAt > 0L &&
+            certificate.totalTests > 0 &&
+            certificate.passedTests == certificate.totalTests &&
+            certificate.failedTests == 0 &&
+            certificate.confidence >= 1.0f &&
+            certificate.isVerified
+
+        if (!valid) {
+            updateProfile(profile)
+            return false
         }
+
+        profiles[profile.gameId] = profile.copy(
+            isVerified = true,
+            confidence = 1.0f,
+            autonomyStatus = AutonomyStatus.AUTONOMY_VERIFIED,
+            lastVerifiedAt = certificate.issuedAt
+        )
+        return true
     }
 }
