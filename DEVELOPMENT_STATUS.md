@@ -1,37 +1,38 @@
 # Universal Game Bot — Development Status
 
-## Verified repository state
+## Implemented in source
 
-- Android native app with Jetpack Compose navigation and a game catalogue.
-- GitHub Actions configures Java 17, Android SDK 34 and Gradle 8.6.
-- CI runs unit tests only. It does not invoke `assembleDebug`, create or publish an APK.
-- The last confirmed CI run for commit `670e3c5696e18be948d6ee0b20092511e20b94ba` passed: [workflow run](https://github.com/pippo2801/crea-bot/actions/runs/38140236869). Later source changes must pass their own run before being considered validated.
-- The Home screen now requests Android screen-capture consent before starting observation, and no longer displays a hard-coded GREEN safety state.
-- Settings provides a shortcut to Android Accessibility settings.
-- Screen capture now registers a MediaProjection callback, validates display dimensions, releases old resources before restart, and handles padded image rows.
+- Native Android app built with Kotlin and Jetpack Compose, navigation and catalogue for 25 game names.
+- GitHub Actions configures Java 17, Android SDK 34 and Gradle 8.6, then runs unit tests only.
+- Screen-capture flow requests Android consent before observation. The capture manager registers a MediaProjection callback, validates display dimensions, and releases virtual-display/image resources.
+- Laboratory diagnostics read current screen-capture, accessibility and observation state. Unimplemented features are reported as warnings instead of being labelled ready.
+- Accessibility gesture methods report whether Android accepted the dispatch; ActionEngine no longer reports success when dispatch was rejected.
+- Safety is fail-closed: a GREEN confidence state alone cannot authorize input. The gate also requires a matching complete certificate for the exact game/profile version. Starting/stopping observation resets the gate.
+- Game profiles begin at zero learning score and unverified. Ordinary score updates cannot certify autonomy.
+- Certificate checks require matching profile/version, all tests passing, zero failures and full confidence.
+- No APK has been created or compiled, following the user's instruction not to create/compile one without explicit permission.
 
-## Safety and honesty
+## Important limitations — not release-ready as a universal player
 
-- Game profiles begin with learning score 0 and unverified.
-- Learning score alone cannot set `AUTONOMY_VERIFIED`; high scores remain unverified until a matching successful certificate is applied.
-- The game detector returns `Unknown Game` because validated visual fingerprints are not implemented.
-- The vision engine currently reports image metadata only and deliberately reports recognition confidence 0.0.
-- Safety starts in RED. Unknown states, errors and invalid or low confidence block actions.
-- The action engine requires explicit authorization from the shared SafetyManager; invalid coordinates and unreasonable durations are rejected.
-- Amaze GO remains observation-only until grid recognition, path planning and victory/failure detection are implemented.
-- Sudoku and EA SPORTS FC Mobile adapters are scaffolds, not autonomous players.
+- The vision engine samples bitmap metadata only and reports confidence 0.0. It does not recognize game objects, boards, buttons or state.
+- The detector deliberately returns `Unknown Game` because validated visual fingerprints are absent.
+- The observation loop is not connected to a functional, certified gameplay adapter.
+- Amaze GO remains observation-only; grid recognition, path planning integration, and victory/failure detection are incomplete.
+- Sudoku, EA SPORTS FC Mobile and the other catalogue entries are not autonomous players. Listing a game does not mean it is supported.
+- Learning screen controls are not connected to a real gameplay learning pipeline; scores must not be interpreted as measured capability.
+- Cloud AI provider routing is not configured. The app does not currently offer automatic selection among external AI services.
+- No physical-device, UI, permission-revocation or real-game tests have been performed.
 
-## Not yet ready for release
+## Validation
 
-- Latest source changes still need a successful CI run.
-- No APK has been created or installed, following the user's explicit instruction not to create or compile one without permission.
-- No real-device or UI permission-flow test has been performed.
-- No validated game-specific vision model, working game solver, victory/failure recognition or autonomous gameplay has been demonstrated.
-- No game is certified as autonomous.
+- Last earlier successful CI run: https://github.com/pippo2801/crea-bot/actions/runs/38140354922
+- Current code changes must pass a fresh CI run before they are considered validated.
+- CI does not compile or publish an APK. A successful unit-test run is not proof of runtime correctness.
 
-## Next steps
+## Release gates
 
-1. Confirm CI passes for the latest commit.
-2. Add focused tests for screen-capture lifecycle and permission-denial handling where testable.
-3. Only after explicit user authorization, package an APK and perform staged phone tests.
-4. Implement and validate each game adapter independently. Never infer support for all registered games from the catalogue.
+1. Pass CI for the latest commit.
+2. Add and test an actual game-specific recognizer and solver, initially for one supported game rather than claiming universal support.
+3. Add integration tests for screen capture, gesture dispatch, permission denial/revocation and stop behavior.
+4. After explicit authorization, build an APK and test on the user's phone.
+5. Certify a game only after repeatable success/failure tests on real game screens.
