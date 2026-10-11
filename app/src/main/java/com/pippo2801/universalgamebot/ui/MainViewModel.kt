@@ -34,10 +34,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedGameId.value = gameId
     }
 
-    fun runDiagnostics() = diagnosticsManager.runDiagnostics(
+    fun runDiagnostics(isObservationRunning: Boolean = isBotRunning.value) = diagnosticsManager.runDiagnostics(
         hasAccessibility = isAccessibilityServiceEnabled(),
         hasScreenCapture = screenCaptureManager.isReady,
-        isObservationRunning = isBotRunning.value
+        isObservationRunning = isObservationRunning
     )
 
     private fun isAccessibilityServiceEnabled(): Boolean {
