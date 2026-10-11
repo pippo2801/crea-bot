@@ -117,13 +117,14 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(viewModel, onStart = ::requestScreenCapture, onStop = ::stopObservation)
                         }
                         composable(Screen.Games.route) {
-                            GamesScreen(viewModel) { gameId -> navController.navigate("game_details/$gameId") }
+                            GamesScreen(viewModel, onNavigateToDetails = { gameId -> navController.navigate("game_details/$gameId") }, onOpenSudoku = { navController.navigate("sudoku_tool") })
                         }
                         composable(Screen.Learning.route) { LearningScreen(viewModel) }
                         composable(Screen.Completed.route) { CompletedScreen(viewModel) }
                         composable(Screen.Laboratory.route) { LaboratoryScreen(viewModel) }
                         composable(Screen.AiResources.route) { AiResourcesScreen(viewModel) }
                         composable(Screen.Settings.route) { SettingsScreen(viewModel) }
+                        composable("sudoku_tool") { SudokuToolScreen() }
                         composable(
                             route = "game_details/{gameId}",
                             arguments = listOf(navArgument("gameId") { type = NavType.StringType })
