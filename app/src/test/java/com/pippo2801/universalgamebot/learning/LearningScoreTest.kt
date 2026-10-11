@@ -46,6 +46,19 @@ class LearningScoreTest {
         ).totalScore)
     }
 
-    private fun score(target: Int): LearningScoreBreakdown =
-        LearningScoreBreakdown(screenRecognition = target)
+    private fun score(target: Int): LearningScoreBreakdown {
+        fun dimension(index: Int) = (target - index * 10).coerceIn(0, 10)
+        return LearningScoreBreakdown(
+            screenRecognition = dimension(0),
+            objectRecognition = dimension(1),
+            controls = dimension(2),
+            rules = dimension(3),
+            objective = dimension(4),
+            stateRecognition = dimension(5),
+            strategy = dimension(6),
+            reactions = dimension(7),
+            errorHandling = dimension(8),
+            autonomousTests = dimension(9)
+        )
+    }
 }
