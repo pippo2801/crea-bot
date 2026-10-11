@@ -18,56 +18,54 @@ data class BotAction(
 )
 
 /**
- * Actions are fail-closed: callers must inject the same SafetyManager used to evaluate
- * the current screen. Without explicit safety authorization, only NONE is accepted.
+ * Actions are fail-closed. GREEN observation alone is insufficient: SafetyManager
+ * also requires a matching, fully successful game-autonomy certificate.
  */
-class ActionEngine(
-    private val safetyManager: SafetyManager? = null
-) {
+class ActionEngine(private val safetyManager: SafetyManager? = null) {
 
     fun executeAction(action: BotAction): Boolean {
         if (action.type == ActionType.NONE) return true
 
         if (safetyManager?.isActionAllowed() != true) {
-            Log.w("ActionEngine", "Blocked action because safety authorization is missing or not GREEN: " + action.description)
+            Log.w("ActionEngine", "Blocked action: safety authorization missing: ${action.description}")
             return false
         }
 
         if (action.type != ActionType.BACK) {
-            val coordinates = listOf(action.x1, action.y1, action.x2, action.y2)
-            if (coordinates.any { !it.isFinite() || it < 0f } ||
-                action.duration !in 1L..5000L
-            ) {
-                Log.w("ActionEngine", "Blocked action with invalid coordinates or duration: " + action.description)
+            val coordinates = if (action.type == ActionType.TAP || action.type == ActionType.LONG_PRESS) {
+                listOf(action.x1, action.y1)
+            } else {
+                listOf(action.x1, action.y1, action.x2, action.y2)
+            }
+            if (coordinates.any { !it.isFinite() || it < 0f } || action.duration !in 1L..5000L) {
+                Log.w("ActionEngine", "Blocked action with invalid coordinates or duration: ${action.description}")
                 return false
             }
         }
 
-        val accessibilityService = BotAccessibilityService.instance
-        if (accessibilityService == null) {
-            Log.w("ActionEngine", "Accessibility service is not active. Cannot perform action: " + action.description)
+        val service = BotAccessibilityService.instance
+        if (service == null) {
+            Log.w("ActionEngine", "Accessibility service is not active: ${action.description}")
             return false
         }
 
-        when (action.type) {
-            ActionType.TAP -> {
-                accessibilityService.performTap(action.x1, action.y1, null)
-                Log.i("ActionEngine", "Performed TAP at (" + action.x1 + ", " + action.y1 + ")")
-            }
-            ActionType.SWIPE, ActionType.DRAG -> {
-                accessibilityService.performSwipe(action.x1, action.y1, action.x2, action.y2, action.duration, null)
-                Log.i("ActionEngine", "Performed SWIPE from (" + action.x1 + ", " + action.y1 + ") to (" + action.x2 + ", " + action.y2 + ")")
-            }
-            ActionType.LONG_PRESS -> {
-                accessibilityService.performSwipe(action.x1, action.y1, action.x1, action.y1, 800L, null)
-                Log.i("ActionEngine", "Performed LONG_PRESS at (" + action.x1 + ", " + action.y1 + ")")
-            }
-            ActionType.BACK -> {
-                accessibilityService.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
-                Log.i("ActionEngine", "Performed GLOBAL_ACTION_BACK")
-            }
-            ActionType.NONE -> return true
+        val accepted = when (action.type) {
+            ActionType.TAP -> service.performTap(action.x1, action.y1, null)
+            ActionType.SWIPE, ActionType.DRAG ->
+                service.performSwipe(action.x1, action.y1, action.x2, action.y2, action.duration, null)
+            ActionType.LONG_PRESS ->
+                service.performSwipe(action.x1, action.y1, action.x1, action.y1, 800L, null)
+            ActionType.BACK -> service.performGlobalAction(
+                android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK
+            )
+            ActionType.NONE -> true
         }
+
+        if (!accepted) {
+            Log.w("ActionEngine", "Android rejected action dispatch: ${action.description}")
+            return false
+        }
+        Log.i("ActionEngine", "Action dispatch accepted: ${action.type} (${action.description})")
         return true
     }
 }
