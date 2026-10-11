@@ -12,8 +12,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val screenCaptureManager = ScreenCaptureManager(application)
     val visionEngine = VisionEngine()
-    val actionEngine = ActionEngine()
     val safetyManager = SafetyManager()
+    val actionEngine = ActionEngine(safetyManager)
     val gameDetector = GameDetector()
     val botLoop = BotLoop(screenCaptureManager, visionEngine, actionEngine, safetyManager, gameDetector)
     val gameRegistry = GameRegistry()
