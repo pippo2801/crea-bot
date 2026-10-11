@@ -6,19 +6,19 @@ enum class SafetyState {
 
 class SafetyManager {
 
-    var currentSafetyState: SafetyState = SafetyState.GREEN
+    // Fail closed: no action is permitted until a real observation is evaluated.
+    var currentSafetyState: SafetyState = SafetyState.RED
         private set
 
     fun evaluateSafety(confidence: Float, isUnknownState: Boolean, hasError: Boolean): SafetyState {
         currentSafetyState = when {
-            hasError || isUnknownState || confidence < 0.4f -> SafetyState.RED
+            hasError || isUnknownState || !confidence.isFinite() ||
+                confidence < 0f || confidence > 1f || confidence < 0.4f -> SafetyState.RED
             confidence < 0.7f -> SafetyState.YELLOW
             else -> SafetyState.GREEN
         }
         return currentSafetyState
     }
 
-    fun isActionAllowed(): Boolean {
-        return currentSafetyState == SafetyState.GREEN
-    }
+    fun isActionAllowed(): Boolean = currentSafetyState == SafetyState.GREEN
 }
