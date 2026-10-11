@@ -18,7 +18,8 @@
 - The detector deliberately returns `Unknown Game` because validated visual fingerprints are absent.
 - The observation loop is not connected to a functional, certified gameplay adapter.
 - Added a deterministic breadth-first-search grid path solver with unit tests. It accepts a recognized `# . S G` grid, validates malformed input, returns a shortest path including endpoints, and handles unreachable goals.
-- Added `GridCoordinateMapper`, which converts recognized grid-cell centers to screen coordinates only when board bounds, screen dimensions, and cell indices are valid. Unit tests cover valid mapping, invalid bounds, non-finite values, and invalid paths. This is a tested building block, not a visual recognizer or gameplay integration.
+- Added `GridCoordinateMapper`, which converts recognized grid-cell centers to screen coordinates only when board bounds, screen dimensions, and cell indices are valid. Unit tests cover valid mapping, invalid bounds, non-finite values, and invalid paths.
+- Added `GridPathPlanner` to combine shortest-path calculation with screen-coordinate planning, with explicit invalid-grid, unreachable-path, and invalid-bounds outcomes plus unit tests. These are tested planning building blocks, not a visual recognizer, gesture executor, or gameplay integration.
 - Added an offline Sudoku backtracking solver with minimum-remaining-values cell selection, input validation, and solution counting capped at two to distinguish unique from ambiguous puzzles; unit tests cover normal, invalid, ambiguous, and non-mutating cases.
 - Amaze GO remains observation-only: the solver is not connected to a visual grid recognizer, path execution, or victory/failure detection, so it does not yet make the game playable autonomously.
 - Sudoku, EA SPORTS FC Mobile and the other catalogue entries are not autonomous players. Listing a game does not mean it is supported.
