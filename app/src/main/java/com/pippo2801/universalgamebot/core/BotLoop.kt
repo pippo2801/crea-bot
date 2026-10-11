@@ -31,7 +31,7 @@ class BotLoop(
         _currentStatus.value = "Running (Observe Loop)"
 
         botJob = scope.launch {
-            while isActive && _isRunning.value {
+            while (isActive && _isRunning.value) {
                 try {
                     // 1. OBSERVE
                     val bitmap = screenCaptureManager.captureLatestBitmap()
@@ -59,6 +59,8 @@ class BotLoop(
 
                     // Throttling for battery & performance optimization
                     delay(1000)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Log.e("BotLoop", "Error in bot main loop", e)
                     _currentStatus.value = "Error: ${e.message}"
