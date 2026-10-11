@@ -154,8 +154,10 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
             right = xSequence.last(),
             bottom = ySequence.last()
         )
-        if (region.left <= 1 || region.top <= 1 ||
-            region.right >= frame.width - 2 || region.bottom >= frame.height - 2
+        val edgeMargin = config.lineMergeDistancePx + 1
+        if (region.left <= edgeMargin || region.top <= edgeMargin ||
+            region.right >= frame.width - edgeMargin - 1 ||
+            region.bottom >= frame.height - edgeMargin - 1
         ) {
             return failure(
                 GridRecognitionError.PARTIAL_GRID,
