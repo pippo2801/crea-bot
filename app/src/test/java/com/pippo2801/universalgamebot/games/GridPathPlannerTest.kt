@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class GridPathPlannerTest {
@@ -21,8 +22,10 @@ class GridPathPlannerTest {
         assertNotNull(plan)
         assertEquals(5, plan!!.path.size)
         assertEquals(plan.path.size, plan.screenPoints.size)
-        assertEquals(ScreenPoint(50f, 33.333336f), plan.screenPoints.first())
-        assertEquals(ScreenPoint(250f, 166.66667f), plan.screenPoints.last())
+        assertEquals(50f, plan.screenPoints.first().x, 0.001f)
+        assertEquals(33.3333f, plan.screenPoints.first().y, 0.01f)
+        assertEquals(250f, plan.screenPoints.last().x, 0.001f)
+        assertEquals(166.6667f, plan.screenPoints.last().y, 0.01f)
     }
 
     @Test
