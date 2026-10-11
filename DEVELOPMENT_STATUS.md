@@ -41,7 +41,7 @@
 ## Release gates
 
 1. Pass CI for the latest commit.
-2. Add and test an actual game-specific recognizer and solver, initially for one supported game rather than claiming universal support.
+2. Calibrate the recognizer against real Amaze GO screenshots, verify the observed grid representation, and integrate it with validated planning only after those tests pass.
 3. Add integration tests for screen capture, gesture dispatch, permission denial/revocation and stop behavior.
 4. After explicit authorization, build an APK and test on the user's phone.
 5. Certify a game only after repeatable success/failure tests on real game screens.
