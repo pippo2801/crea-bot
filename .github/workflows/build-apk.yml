@@ -30,18 +30,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Confirm Android SDK tools are available
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "ANDROID_HOME=${ANDROID_HOME:-not-set}"
-          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-not-set}"
-          command -v sdkmanager
-          sdkmanager --version
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          tools: ''
 
       - name: Install required Android SDK components
         run: |
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          set -euo pipefail
+          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Set up Gradle 8.6
         uses: gradle/actions/setup-gradle@v4
