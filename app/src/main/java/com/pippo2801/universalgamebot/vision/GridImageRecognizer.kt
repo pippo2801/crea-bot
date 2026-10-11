@@ -61,7 +61,6 @@ data class AmazeGoVisualConfig(
     val minLineCoverage: Float = 0.35f,
     val lineMergeDistancePx: Int = 3,
     val minCellColorMatchRatio: Float = 0.85f,
-    val maxAmbiguousCellsRatio: Float = 0.05f
 ) {
     init {
         require(minWidth > 0 && minHeight > 0)
@@ -71,7 +70,6 @@ data class AmazeGoVisualConfig(
         require(minLineCoverage in 0f..1f)
         require(lineMergeDistancePx >= 0)
         require(minCellColorMatchRatio in 0f..1f)
-        require(maxAmbiguousCellsRatio in 0f..1f)
     }
 }
 
@@ -200,8 +198,7 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
         }
 
         val cellCount = (xSequence.size - 1) * (ySequence.size - 1)
-        val ambiguousRatio = ambiguousCells.toFloat() / cellCount.toFloat()
-        if (ambiguousRatio > config.maxAmbiguousCellsRatio || ambiguousCells > 0) {
+        if (ambiguousCells > 0) {
             return failure(
                 GridRecognitionError.AMBIGUOUS_CELLS,
                 "Unable to classify $ambiguousCells of $cellCount cell interiors using configured color ranges"
@@ -284,7 +281,8 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
         for (startIndex in lines.indices) {
             for (nextIndex in startIndex + 1 until lines.size) {
                 val distance = lines[nextIndex] - lines[startIndex]
-                for (cellsBetween in 1..maxCells) {
+                val maxDivisions = minOf(maxCells, distance / config.minCellSizePx)
+                for (cellsBetween in 1..maxDivisions) {
                     val step = distance.toFloat() / cellsBetween.toFloat()
                     if (step < config.minCellSizePx || step > config.maxCellSizePx) continue
                     val tolerance = maxOf(2, (step * 0.18f).toInt())
