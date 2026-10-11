@@ -42,6 +42,17 @@ class GridImageRecognizerTest {
     }
 
     @Test
+    fun gridTouchingImageEdgeIsRejectedAsPartial() {
+        val result = recognizer.recognize(syntheticGrid(origin = 0))
+
+        assertTrue(result is GridRecognitionResult.Failure)
+        assertEquals(
+            GridRecognitionError.PARTIAL_GRID,
+            (result as GridRecognitionResult.Failure).reason
+        )
+    }
+
+    @Test
     fun unclassifiedCellBlocksRecognition() {
         val frame = syntheticGrid(ambiguousCell = Pair(2, 2))
         val result = recognizer.recognize(frame)
@@ -64,11 +75,10 @@ class GridImageRecognizerTest {
         )
     }
 
-    private fun syntheticGrid(ambiguousCell: Pair<Int, Int>? = null): PixelFrame {
+    private fun syntheticGrid(ambiguousCell: Pair<Int, Int>? = null, origin: Int = 12): PixelFrame {
         val width = 160
         val height = 160
         val pixels = IntArray(width * height) { 0xFF777777.toInt() }
-        val origin = 12
         val cellSize = 24
         val cells = Array(5) { Array(5) { FREE } }
         cells[1][1] = WALL
