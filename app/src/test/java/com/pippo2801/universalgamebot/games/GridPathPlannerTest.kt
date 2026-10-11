@@ -59,7 +59,7 @@ class GridPathPlannerTest {
 
         val uncertain = observation.copy(confidence = 0.5f)
         assertEquals(
-            GridPathPlanner.Failure.INVALID_GRID,
+            GridPathPlanner.Failure.INVALID_OBSERVATION,
             GridPathPlanner.planValidated(uncertain).failure
         )
     }
