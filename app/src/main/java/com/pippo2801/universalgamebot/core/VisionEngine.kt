@@ -2,7 +2,6 @@ package com.pippo2801.universalgamebot.core
 
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.util.Log
 
 data class VisionResult(
     val confidence: Float,
@@ -20,36 +19,38 @@ data class DetectedObject(
     val confidence: Float
 )
 
+/**
+ * Offline fallback that reports basic image metadata only.
+ * A pixel sample is not game recognition, so confidence stays zero and no semantic
+ * objects are fabricated. A real recognizer can replace this implementation later.
+ */
 class VisionEngine {
 
     fun analyzeBitmap(bitmap: Bitmap?): VisionResult {
-        if (bitmap == null) {
-            return VisionResult(0.0f, emptyList(), Color.BLACK, "No Bitmap / Screen Off")
+        if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) {
+            return VisionResult(
+                confidence = 0.0f,
+                detectedObjects = emptyList(),
+                dominantColor = Color.BLACK,
+                stateSummary = "No valid bitmap; recognition unavailable"
+            )
         }
 
-        // Real lightweight sample analysis for offline robustness
-        val width = bitmap.width
-        val height = bitmap.height
-        val sampleX = width / 2
-        val sampleY = height / 2
-        val pixel = bitmap.getPixel(sampleX, sampleY)
+        val sampleX = bitmap.width / 2
+        val sampleY = bitmap.height / 2
+        val sampledPixel = bitmap.getPixel(sampleX, sampleY)
+        val brightness = (
+            Color.red(sampledPixel) +
+            Color.green(sampledPixel) +
+            Color.blue(sampledPixel)
+        ) / 3
 
-        val red = Color.red(pixel)
-        val green = Color.green(pixel)
-        val blue = Color.blue(pixel)
-
-        val brightness = (red + green + blue) / 3
-        val confidence = if (width > 0 && height > 0) 0.85f else 0.1f
-
-        val objects = mutableListOf<DetectedObject>()
-        // Heuristic object detection
-        if (brightness > 200) {
-            objects.add(DetectedObject("UI_BRIGHT_ELEMENT", sampleX.toFloat(), sampleY.toFloat(), 100f, 100f, 0.8f))
-        } else if (brightness < 50) {
-            objects.add(DetectedObject("UI_DARK_ELEMENT", sampleX.toFloat(), sampleY.toFloat(), 100f, 100f, 0.8f))
-        }
-
-        val summary = "Screen analyzed (${width}x${height}), avg brightness: $brightness"
-        return VisionResult(confidence, objects, pixel, summary)
+        return VisionResult(
+            confidence = 0.0f,
+            detectedObjects = emptyList(),
+            dominantColor = sampledPixel,
+            stateSummary = "Image metadata only (" + bitmap.width + "x" + bitmap.height +
+                ", sampled brightness " + brightness + "); game/object recognition unavailable"
+        )
     }
 }
