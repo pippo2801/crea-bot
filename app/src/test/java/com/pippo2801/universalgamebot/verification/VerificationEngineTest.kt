@@ -14,7 +14,7 @@ class VerificationEngineTest {
         assertEquals(0, certificate.totalTests)
         assertEquals(0, certificate.passedTests)
         assertEquals(0, certificate.failedTests)
-        assertEquals(0f, certificate.confidence)
+        assertEquals(0f, certificate.confidence, 0.0001f)
         assertFalse(certificate.isVerified)
     }
 
@@ -32,7 +32,7 @@ class VerificationEngineTest {
         assertEquals(2, certificate.totalTests)
         assertEquals(2, certificate.passedTests)
         assertEquals(0, certificate.failedTests)
-        assertEquals(1f, certificate.confidence)
+        assertEquals(1f, certificate.confidence, 0.0001f)
         assertTrue(certificate.isVerified)
     }
 
@@ -50,7 +50,7 @@ class VerificationEngineTest {
         assertEquals(2, certificate.totalTests)
         assertEquals(1, certificate.passedTests)
         assertEquals(1, certificate.failedTests)
-        assertEquals(0.5f, certificate.confidence)
+        assertEquals(0.5f, certificate.confidence, 0.0001f)
         assertFalse(certificate.isVerified)
     }
 
