@@ -40,6 +40,19 @@ class GameRegistryTest {
     }
 
     @Test
+    fun learningProgressCanAdvanceButNeverSelfCertifies() {
+        val registry = GameRegistry()
+        val profile = registry.getProfile("ea_sports_fc_mobile")!!
+        registry.updateProfile(profile.copy(learningScore = 95))
+
+        val stored = registry.getProfile(profile.gameId)!!
+        assertEquals(95, stored.learningScore)
+        assertEquals(AutonomyStatus.NEARLY_READY, stored.autonomyStatus)
+        assertFalse(stored.isVerified)
+        assertEquals(0L, stored.lastVerifiedAt)
+    }
+
+    @Test
     fun mismatchedCertificateCannotVerifyAnotherGame() {
         val registry = GameRegistry()
         val profile = registry.getProfile("ea_sports_fc_mobile")!!
