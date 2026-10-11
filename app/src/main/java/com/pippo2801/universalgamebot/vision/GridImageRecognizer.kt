@@ -1,7 +1,6 @@
 package com.pippo2801.universalgamebot.vision
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import com.pippo2801.universalgamebot.games.GridBounds
 import com.pippo2801.universalgamebot.games.GridObservation
 
@@ -42,9 +41,9 @@ data class ColorRange(
     }
 
     fun contains(argb: Int): Boolean =
-        Color.red(argb) in minRed..maxRed &&
-            Color.green(argb) in minGreen..maxGreen &&
-            Color.blue(argb) in minBlue..maxBlue
+        ((argb ushr 16) and 0xFF) in minRed..maxRed &&
+            ((argb ushr 8) and 0xFF) in minGreen..maxGreen &&
+            (argb and 0xFF) in minBlue..maxBlue
 }
 
 data class AmazeGoVisualConfig(
@@ -370,7 +369,7 @@ class GridImageRecognizer(private val config: AmazeGoVisualConfig) {
     }
 
     private fun luminance(argb: Int): Int =
-        (Color.red(argb) * 299 + Color.green(argb) * 587 + Color.blue(argb) * 114) / 1000
+        (((argb ushr 16) and 0xFF) * 299 + ((argb ushr 8) and 0xFF) * 587 + (argb and 0xFF) * 114) / 1000
 
     private fun failure(reason: GridRecognitionError, details: String) =
         GridRecognitionResult.Failure(reason, details)
