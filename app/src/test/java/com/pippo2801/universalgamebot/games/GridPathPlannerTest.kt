@@ -45,4 +45,23 @@ class GridPathPlannerTest {
         assertEquals(GridPathPlanner.Failure.INVALID_BOARD_BOUNDS, result.failure)
         assertNull(result.plan)
     }
+    @Test
+    fun validatedObservationCanBePlannedButLowConfidenceIsRejected() {
+        val observation = GridObservation(
+            gameId = "amaze_go",
+            rows = listOf("S..", "##.", "..G"),
+            boardBounds = bounds,
+            screenWidth = 300,
+            screenHeight = 200,
+            confidence = 0.98f
+        )
+        assertTrue(GridPathPlanner.planValidated(observation).isSuccess)
+
+        val uncertain = observation.copy(confidence = 0.5f)
+        assertEquals(
+            GridPathPlanner.Failure.INVALID_GRID,
+            GridPathPlanner.planValidated(uncertain).failure
+        )
+    }
+
 }
