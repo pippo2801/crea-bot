@@ -13,11 +13,16 @@ import com.pippo2801.universalgamebot.ui.MainViewModel
 
 @Composable
 fun LaboratoryScreen(viewModel: MainViewModel) {
-    // For demo/diagnostics, assuming accessibility not bound yet
-    val diagnostics = viewModel.diagnosticsManager.runDiagnostics(false, false)
+    val isRunning by viewModel.isBotRunning.collectAsState()
+    val diagnostics = viewModel.runDiagnostics()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Diagnostics & Laboratory", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Stato rilevato dal dispositivo e funzioni realmente implementate. Gli avvisi non bloccanti indicano funzioni ancora mancanti.",
+            style = MaterialTheme.typography.bodySmall
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -32,9 +37,9 @@ fun LaboratoryScreen(viewModel: MainViewModel) {
                             Text(item.details, style = MaterialTheme.typography.bodySmall)
                         }
                         val statusColor = when (item.status) {
-                            DiagnosticStatus.OK -> Color.Green
-                            DiagnosticStatus.WARNING -> Color.Yellow
-                            DiagnosticStatus.ERROR -> Color.Red
+                            DiagnosticStatus.OK -> Color(0xFF2E7D32)
+                            DiagnosticStatus.WARNING -> Color(0xFFF9A825)
+                            DiagnosticStatus.ERROR -> MaterialTheme.colorScheme.error
                         }
                         Text(item.status.name, color = statusColor, style = MaterialTheme.typography.titleMedium)
                     }
