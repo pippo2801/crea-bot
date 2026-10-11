@@ -1,9 +1,12 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.UniversalGameBot" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+<resources>
+    <!-- Compose provides the Material 3 UI theme; use a platform theme for the Activity XML theme. -->
+    <style name="Theme.UniversalGameBot" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorAccent">@color/purple_500</item>
+        <item name="android:statusBarColor">@color/purple_700</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
     </style>
+
     <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
     <color name="white">#FFFFFF</color>
 </resources>
