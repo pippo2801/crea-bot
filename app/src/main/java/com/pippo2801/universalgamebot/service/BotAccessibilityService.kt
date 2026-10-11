@@ -9,6 +9,7 @@ import android.view.accessibility.AccessibilityEvent
 class BotAccessibilityService : AccessibilityService() {
 
     companion object {
+        @Volatile
         var instance: BotAccessibilityService? = null
             private set
     }
@@ -20,7 +21,7 @@ class BotAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Observe accessibility events if needed for game state observation.
+        // Observation hooks can be added when game-specific state parsing is implemented.
     }
 
     override fun onInterrupt() {
@@ -28,28 +29,16 @@ class BotAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        if (instance == this) instance = null
         super.onDestroy()
-        if (instance == this) {
-            instance = null
-        }
         Log.i("BotAccessibilityService", "Accessibility Service destroyed.")
     }
 
-    fun performTap(x: Float, y: Float, callback: GestureResultCallback?) {
+    fun performTap(x: Float, y: Float, callback: GestureResultCallback?): Boolean {
         val path = Path().apply { moveTo(x, y) }
         val stroke = GestureDescription.StrokeDescription(path, 0, 50)
         val gesture = GestureDescription.Builder().addStroke(stroke).build()
-        dispatchGesture(gesture, object : GestureResultCallback() {
-            override fun onCompleted(gestureDescription: GestureDescription?) {
-                super.onCompleted(gestureDescription)
-                callback?.onCompleted(gestureDescription)
-            }
-
-            override fun onCancelled(gestureDescription: GestureDescription?) {
-                super.onCancelled(gestureDescription)
-                callback?.onCancelled(gestureDescription)
-            }
-        }, null)
+        return dispatchGesture(gesture, forwardingCallback(callback), null)
     }
 
     fun performSwipe(
@@ -59,7 +48,7 @@ class BotAccessibilityService : AccessibilityService() {
         endY: Float,
         duration: Long,
         callback: GestureResultCallback?
-    ) {
+    ): Boolean {
         val safeDuration = duration.coerceIn(1L, 5000L)
         val path = Path().apply {
             moveTo(startX, startY)
@@ -67,7 +56,11 @@ class BotAccessibilityService : AccessibilityService() {
         }
         val stroke = GestureDescription.StrokeDescription(path, 0, safeDuration)
         val gesture = GestureDescription.Builder().addStroke(stroke).build()
-        dispatchGesture(gesture, object : GestureResultCallback() {
+        return dispatchGesture(gesture, forwardingCallback(callback), null)
+    }
+
+    private fun forwardingCallback(callback: GestureResultCallback?): GestureResultCallback =
+        object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
                 callback?.onCompleted(gestureDescription)
@@ -77,6 +70,5 @@ class BotAccessibilityService : AccessibilityService() {
                 super.onCancelled(gestureDescription)
                 callback?.onCancelled(gestureDescription)
             }
-        }, null)
-    }
+        }
 }
