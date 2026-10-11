@@ -14,7 +14,7 @@ import com.pippo2801.universalgamebot.ui.MainViewModel
 @Composable
 fun LaboratoryScreen(viewModel: MainViewModel) {
     val isRunning by viewModel.isBotRunning.collectAsState()
-    val diagnostics = viewModel.runDiagnostics()
+    val diagnostics = viewModel.runDiagnostics(isRunning)
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Diagnostics & Laboratory", style = MaterialTheme.typography.headlineMedium)
