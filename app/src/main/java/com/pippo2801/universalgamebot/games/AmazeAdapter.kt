@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.pippo2801.universalgamebot.core.ActionType
 import com.pippo2801.universalgamebot.core.BotAction
 import com.pippo2801.universalgamebot.core.VisionResult
+import com.pippo2801.universalgamebot.games.GridPathPlanner
 import com.pippo2801.universalgamebot.vision.GridImageRecognizer
 import com.pippo2801.universalgamebot.vision.GridRecognitionResult
 
@@ -30,16 +31,29 @@ class AmazeAdapter(
         )
 
         return when (val result = recognizer.recognize(bitmap)) {
-            is GridRecognitionResult.Success -> mapOf(
-                "width" to bitmap.width,
-                "height" to bitmap.height,
-                "grid" to result.grid.rows,
-                "gridConfidence" to result.grid.confidence,
-                "gridBounds" to result.grid.region,
-                "gridObservation" to result.grid.observation,
-                "recognitionStatus" to "recognized_observation_only",
-                "readyForAction" to false
-            )
+            is GridRecognitionResult.Success -> {
+                val observation = result.grid.observation
+                val planning = GridPathPlanner.planValidated(observation)
+                val base = mutableMapOf<String, Any>(
+                    "width" to bitmap.width,
+                    "height" to bitmap.height,
+                    "grid" to result.grid.rows,
+                    "gridConfidence" to result.grid.confidence,
+                    "gridBounds" to result.grid.region,
+                    "gridObservation" to observation,
+                    "recognitionStatus" to "recognized_observation_only",
+                    "readyForAction" to false
+                )
+                if (planning.isSuccess) {
+                    val plan = requireNotNull(planning.plan)
+                    base["pathPlanStatus"] = "planned_observation_only"
+                    base["plannedGridPath"] = plan.path
+                    base["plannedScreenPoints"] = plan.screenPoints
+                } else {
+                    base["pathPlanStatus"] = "blocked_" + (planning.failure?.name ?: "UNKNOWN")
+                }
+                base
+            }
             is GridRecognitionResult.Failure -> mapOf(
                 "width" to bitmap.width,
                 "height" to bitmap.height,
