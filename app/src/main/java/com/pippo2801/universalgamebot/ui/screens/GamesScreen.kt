@@ -11,7 +11,11 @@ import androidx.compose.ui.unit.dp
 import com.pippo2801.universalgamebot.ui.MainViewModel
 
 @Composable
-fun GamesScreen(viewModel: MainViewModel, onNavigateToDetails: (String) -> Unit) {
+fun GamesScreen(
+    viewModel: MainViewModel,
+    onNavigateToDetails: (String) -> Unit,
+    onOpenSudoku: () -> Unit
+) {
     val profiles = viewModel.gameRegistry.getAllProfiles()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
