@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pippo2801.universalgamebot.games.SudokuSolver
+import com.pippo2801.universalgamebot.games.SudokuGridParser
 
 private val defaultSudoku = listOf(
     "530070000",
@@ -62,17 +63,20 @@ fun SudokuToolScreen() {
         )
         Button(
             onClick = {
-                val rows = puzzleText.lines()
-                    .map { line -> line.filter { it.isDigit() || it == '.' } }
-                    .filter { it.isNotEmpty() }
-                if (rows.size != 9 || rows.any { it.length != 9 }) {
+                val parsed = SudokuGridParser.parse(puzzleText)
+                if (!parsed.isValid) {
                     solvedGrid = null
-                    resultText = "Formato non valido: servono esattamente 9 righe con 9 celle ciascuna."
-                } else {
-                    val parsed = rows.map { row ->
-                        row.map { char -> if (char == '.' || char == '0') 0 else char.digitToIntOrNull() ?: -1 }
+                    resultText = when (parsed.error) {
+                        SudokuGridParser.Error.INVALID_ROW_COUNT ->
+                            "Formato non valido: servono esattamente 9 righe non vuote."
+                        SudokuGridParser.Error.INVALID_ROW_LENGTH ->
+                            "Formato non valido: ogni riga deve contenere esattamente 9 celle."
+                        SudokuGridParser.Error.INVALID_CHARACTER ->
+                            "Carattere non valido: usa solo cifre da 0 a 9, punti e spazi."
+                        null -> "Formato non valido."
                     }
-                    val result = SudokuSolver.solve(parsed)
+                } else {
+                    val result = SudokuSolver.solve(parsed.grid!!)
                     solvedGrid = if (result.status == SudokuSolver.Status.SOLVED) result.grid else null
                     resultText = when (result.status) {
                         SudokuSolver.Status.INVALID_INPUT -> "Griglia non valida: controlla cifre duplicate nelle righe, colonne o riquadri."
