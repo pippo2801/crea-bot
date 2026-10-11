@@ -5,7 +5,7 @@ class GameRegistry {
     private val profiles = mutableMapOf<String, GameProfile>()
 
     init {
-        // Initialize default game profiles as requested
+        // Registration is a catalogue only; it does not imply an adapter is functional.
         val initialGames = listOf(
             "Sudoku",
             "Crypto Game",
@@ -39,8 +39,13 @@ class GameRegistry {
             profiles[id] = GameProfile(
                 gameId = id,
                 name = game,
-                learningScore = if (game == "Amaze GO") 45 else 10,
-                autonomyStatus = if (game == "Amaze GO") AutonomyStatus.LEARNING else AutonomyStatus.OBSERVATION
+                learningScore = 0,
+                confidence = 0.0f,
+                autonomyStatus = AutonomyStatus.OBSERVATION,
+                lastVerifiedAt = 0L,
+                strategiesCount = 0,
+                errorCount = 0,
+                isVerified = false
             )
         }
     }
@@ -50,6 +55,21 @@ class GameRegistry {
     fun getProfile(gameId: String): GameProfile? = profiles[gameId]
 
     fun updateProfile(profile: GameProfile) {
-        profiles[profile.gameId] = profile
+        // Do not allow callers to infer verified autonomy from a score alone.
+        profiles[profile.gameId] = if (profile.isVerified &&
+            profile.autonomyStatus == AutonomyStatus.AUTONOMY_VERIFIED &&
+            profile.lastVerifiedAt > 0L &&
+            profile.learningScore >= 0 &&
+            profile.learningScore <= 100
+        ) {
+            profile
+        } else {
+            profile.copy(
+                isVerified = false,
+                autonomyStatus = if (profile.autonomyStatus == AutonomyStatus.NOT_AUTONOMOUS)
+                    AutonomyStatus.NOT_AUTONOMOUS else AutonomyStatus.OBSERVATION,
+                lastVerifiedAt = 0L
+            )
+        }
     }
 }
