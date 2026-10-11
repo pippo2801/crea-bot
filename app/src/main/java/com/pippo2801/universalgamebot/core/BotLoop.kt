@@ -23,6 +23,7 @@ class BotLoop(
 
     fun start() {
         if (_isRunning.value) return
+        safetyManager.evaluateSafety(0.0f, true, false)
         _isRunning.value = true
         _currentStatus.value = "Avvio osservazione"
         botJob = scope.launch {
@@ -48,7 +49,7 @@ class BotLoop(
                         continue
                     }
                     _currentStatus.value = "Riconosciuto: $gameName"
-                    // Gameplay remains disabled until a validated game adapter is connected.
+                    // No game adapter is currently certified; the loop deliberately does not execute actions.
                     delay(1000)
                 } catch (e: CancellationException) {
                     throw e
@@ -70,6 +71,8 @@ class BotLoop(
         _isRunning.value = false
         botJob?.cancel()
         botJob = null
+        safetyManager.evaluateSafety(0.0f, true, false)
+        safetyManager.clearVerifiedGame()
         _currentStatus.value = "Fermato dall'utente"
         Log.i("BotLoop", "Ciclo del bot fermato.")
     }
