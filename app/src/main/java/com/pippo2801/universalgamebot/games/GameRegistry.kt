@@ -58,11 +58,19 @@ class GameRegistry {
 
     /** Ordinary profile updates cannot assert that a game is autonomous. */
     fun updateProfile(profile: GameProfile) {
+        val score = profile.learningScore.coerceIn(0, 100)
+        val status = when {
+            profile.autonomyStatus == AutonomyStatus.NOT_AUTONOMOUS -> AutonomyStatus.NOT_AUTONOMOUS
+            score < 40 -> AutonomyStatus.OBSERVATION
+            score < 70 -> AutonomyStatus.LEARNING
+            score < 90 -> AutonomyStatus.AUTONOMOUS_TESTING
+            else -> AutonomyStatus.NEARLY_READY
+        }
         profiles[profile.gameId] = profile.copy(
+            learningScore = score,
             isVerified = false,
             confidence = profile.confidence.coerceIn(0f, 1f),
-            autonomyStatus = if (profile.autonomyStatus == AutonomyStatus.NOT_AUTONOMOUS)
-                AutonomyStatus.NOT_AUTONOMOUS else AutonomyStatus.OBSERVATION,
+            autonomyStatus = status,
             lastVerifiedAt = 0L
         )
     }
