@@ -29,7 +29,7 @@ class GridPathPlannerTest {
 
     @Test
     fun distinguishesInvalidGridFromUnreachableGoal() {
-        val invalid = GridPathPlanner.plan(listOf("S..", "..G", "###"), bounds, 300, 200)
+        val invalid = GridPathPlanner.plan(listOf("S##", "###", "..G"), bounds, 300, 200)
         assertEquals(GridPathPlanner.Failure.UNREACHABLE, invalid.failure)
         assertFalse(invalid.isSuccess)
 
