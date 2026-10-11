@@ -17,7 +17,8 @@
 - The vision engine samples bitmap metadata only and reports confidence 0.0. It does not recognize game objects, boards, buttons or state.
 - The detector deliberately returns `Unknown Game` because validated visual fingerprints are absent.
 - The observation loop is not connected to a functional, certified gameplay adapter.
-- Amaze GO remains observation-only; grid recognition, path planning integration, and victory/failure detection are incomplete.
+- Added a deterministic breadth-first-search grid path solver with unit tests. It accepts a recognized `# . S G` grid, validates malformed input, returns a shortest path including endpoints, and handles unreachable goals.
+- Amaze GO remains observation-only: the solver is not connected to a visual grid recognizer, path execution, or victory/failure detection, so it does not yet make the game playable autonomously.
 - Sudoku, EA SPORTS FC Mobile and the other catalogue entries are not autonomous players. Listing a game does not mean it is supported.
 - Learning screen controls are not connected to a real gameplay learning pipeline; scores must not be interpreted as measured capability.
 - Cloud AI provider routing is not configured. The app does not currently offer automatic selection among external AI services.
